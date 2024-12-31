@@ -4,11 +4,10 @@ import numpy as np
 from Entities.camera import *
 from Entities.projection import *
 from Entities.object import *
+from Settings.colors_const import *
 
 class Render:
     def __init__(self, width:int = 1600, height:int = 900, fps:int = 60):
-        self.axes = None
-        self.world_axes = None
         self.object = None
         self.camera = None
         self.projection = None
@@ -21,23 +20,26 @@ class Render:
         self.create_object()
 
     def create_object(self):
-        self.camera = Camera(self, [0.5, 1, -4])
+        self.camera = Camera(self, [5, 10, -50])
         self.projection = Projection(self)
-        self.object = Object(self)
-        self.object.translate([0.2, 0.4, 0.2])
-        #self.object.rotate_y(math.pi / 6)
-        self.axes = Axes(self)
-        self.axes.translate([0.7, 0.9, 0.7])
-        self.world_axes = Axes(self)
-        self.world_axes.movement_flag = False
-        self.world_axes.scale(2.5)
-        self.world_axes.translate([0.0001, 0.0001, 0.0001])
+        self.object = self.get_object_from_file('Resources/Lata de refresco (alta resolución).obj')
+        self.object.scale(0.1)
+        self.object.rotate_z(100)
+
+    def get_object_from_file(self, filename):
+        vertex, faces = [], []
+        with open(filename) as f:
+            for line in f:
+                if line.startswith('v '):
+                    vertex.append([float(i) for i in line.split()[1:]] + [1])
+                elif line.startswith('f'):
+                    faces_ = line.split()[1:]
+                    faces.append([int(face_.split('/')[0]) - 1 for face_ in faces_])
+        return Object(self, vertex, faces)
 
 
     def draw(self):
-        self.screen.fill(pg.Color('darkslategray'))
-        self.world_axes.draw()
-        self.axes.draw()
+        self.screen.fill(LIGHT_BLUE)
         self.object.draw()
 
     def run(self):
